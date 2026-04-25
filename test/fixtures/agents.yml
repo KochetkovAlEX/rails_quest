@@ -6,6 +6,6 @@ one:
   active: false
 
 two:
-  codename: MyString
+  codename: MyString2
   level: 1
   active: false
