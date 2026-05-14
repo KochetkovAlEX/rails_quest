@@ -84,9 +84,9 @@ if required_classes.all? && required_tables.all? { |table_name| quest_table_exis
     mission_class.find_or_initialize_by(title: attributes[:title]).tap do |mission|
       mission.assign_attributes(
         status: attributes[:status],
-        agent: seeded_agents.fetch(attributes[:agent_codename])
+        agent: seeded_agents.fetch(attributes[:agent_codename]),
       )
-      mission.save!
+      mission.save(validate: false)
     end
   end
 
