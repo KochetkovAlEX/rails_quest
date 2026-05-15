@@ -22,10 +22,9 @@ class Quest2StudentService
     # @return [String]
     def agents_with_missions_sorted_by_mission_count
       Agent.includes(:missions)
-         .to_a # Загружаем данные в память для комбинированной сортировки
+         .to_a
          .sort_by { |agent| [-agent.missions.size, agent.codename] }
          .map do |agent|
-           # Сортируем миссии текущего агента по алфавиту
            mission_titles = agent.missions.map(&:title).sort.join(', ')
            
            "#{agent.codename} (#{agent.missions.size}): #{mission_titles}"
@@ -43,17 +42,21 @@ class Quest2StudentService
 
     # @return [String]
     def skills_by_agent_count
-      Skill.includes(:agents)
-         .to_a
-         # Сортируем навыки по убыванию числа агентов (-skill.agents.size)
-         .sort_by { |skill| -skill.agents.size }
-         .map do |skill|
-           # Вытаскиваем имена агентов и сортируем их по алфавиту
-           agent_names = skill.agents.map(&:codename).sort.join(', ')
+      # Skill.includes(:agents)
+      #    .to_a
+      #    .sort_by { |skill| -skill.agents.size }
+      #    .map do |skill|
+      #      agent_names = skill.agents.map(&:codename).sort.join(', ')
            
-           "#{skill.name} (#{skill.agents.size}): #{agent_names}"
-         end
-         .join("\n")
+      #      "#{skill.name} (#{skill.agents.size}): #{agent_names}"
+      #    end
+      #    .join("\n")
+      Skill.joins(:agents)
+        .group('skills.id', 'skills.name')
+        .order('COUNT(agents.id) DESC')
+        .select("skills.name, COUNT(agents.id) AS agents_count, STRING_AGG(agents.codename, ', ' ORDER BY agents.codename) AS agent_names")
+        .map { |skill| "#{skill.name} (#{skill.agents_count}): #{skill.agent_names}" }
+        .join("\n")
     end
   end
 end
